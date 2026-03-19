@@ -58,7 +58,8 @@
         "git-commits",
         "pr-standards",
         "testing",
-        "csharp-conventions"
+        "csharp-conventions",
+        "dotnet-architecture"
       ]
     },
     "copilot": {
@@ -67,7 +68,8 @@
         "git-commits",
         "pr-standards",
         "testing",
-        "csharp-conventions"
+        "csharp-conventions",
+        "dotnet-architecture"
       ]
     },
     "cursor": {
@@ -76,7 +78,8 @@
         "git-commits",
         "pr-standards",
         "testing",
-        "csharp-conventions"
+        "csharp-conventions",
+        "dotnet-architecture"
       ]
     }
   },

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "dev-lifecycle base TypeScript config",
+  "display": "ai-dev-lifecycle base TypeScript config",
   "compilerOptions": {
     // ── Language & Environment ─────────────────────────────────────────────────
     "target": "ES2022",

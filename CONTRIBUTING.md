@@ -1,4 +1,4 @@
-# Contributing to dev-lifecycle
+# Contributing to ai-dev-lifecycle
 
 This repo is a shared development lifecycle toolkit. Contributions keep it useful and
 current. This document covers how to add or update rules, modules, hooks, and workflows.
@@ -120,7 +120,7 @@ Add a row to the modules table in `README.md`.
 ## Updating a Reusable Workflow
 
 Reusable workflows in `.github/workflows/` are referenced by consuming projects as
-`uses: goeke-m/dev-lifecycle/.github/workflows/name.yml@main`. Changes take effect
+`uses: goeke-m/ai-dev-lifecycle/.github/workflows/name.yml@main`. Changes take effect
 immediately on the next run in consuming repos — there is no versioning step.
 
 **Before changing a reusable workflow:**
@@ -157,7 +157,7 @@ Before opening a PR, test your changes against a real project:
 
 ```bash
 # Pull your branch
-cd ~/.dev-lifecycle
+cd ~/.ai-dev-lifecycle
 git fetch && git checkout your-branch
 
 # Apply to a test project
@@ -173,7 +173,7 @@ git commit --allow-empty -m "test: verify hooks"
 
 Switch back to `main` when done:
 ```bash
-cd ~/.dev-lifecycle && git checkout main
+cd ~/.ai-dev-lifecycle && git checkout main
 ```
 
 ---

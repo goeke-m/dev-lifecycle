@@ -4,7 +4,7 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 # commit-msg hook — Enforce Conventional Commits format
 #
-# Managed by dev-lifecycle (https://github.com/goeke-m/dev-lifecycle)
+# Managed by ai-dev-lifecycle (https://github.com/goeke-m/ai-dev-lifecycle)
 # Spec: https://www.conventionalcommits.org/en/v1.0.0/
 # -----------------------------------------------------------------------------
 

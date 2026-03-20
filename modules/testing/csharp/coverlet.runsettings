@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
   coverlet.runsettings — Code coverage settings for dotnet test + Coverlet
-  Managed by dev-lifecycle (https://github.com/goeke-m/dev-lifecycle)
+  Managed by ai-dev-lifecycle (https://github.com/goeke-m/ai-dev-lifecycle)
 
   Usage:
     dotnet test --settings coverlet.runsettings
@@ -91,7 +91,7 @@
             When running tests across multiple test projects, merge the results
             into a single report file.
           -->
-          <MergeWith>/tmp/dev-lifecycle-coverage/coverage.json</MergeWith>
+          <MergeWith>/tmp/ai-dev-lifecycle-coverage/coverage.json</MergeWith>
 
           <!-- ── Instrumentation ──────────────────────────────────────────── -->
           <!-- Include branch coverage data -->

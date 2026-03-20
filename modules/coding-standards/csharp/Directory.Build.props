@@ -1,7 +1,7 @@
 <Project>
   <!--
     Directory.Build.props — Shared MSBuild properties for all projects
-    Managed by dev-lifecycle (https://github.com/goeke-m/dev-lifecycle)
+    Managed by ai-dev-lifecycle (https://github.com/goeke-m/ai-dev-lifecycle)
     Place this file at the repository root to apply settings to all projects.
   -->
 
@@ -47,7 +47,7 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Assembly Info">
-    <Authors>dev-lifecycle</Authors>
+    <Authors>ai-dev-lifecycle</Authors>
     <Company>goeke-m</Company>
     <Copyright>Copyright © $([System.DateTime]::UtcNow.Year)</Copyright>
     <RepositoryUrl>https://github.com/goeke-m</RepositoryUrl>

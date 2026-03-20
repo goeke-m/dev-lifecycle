@@ -1,5 +1,5 @@
 // vitest.config.base.ts — Base Vitest configuration
-// Managed by dev-lifecycle (https://github.com/goeke-m/dev-lifecycle)
+// Managed by ai-dev-lifecycle (https://github.com/goeke-m/ai-dev-lifecycle)
 //
 // Usage in a consuming project — merge with your project-specific config:
 //

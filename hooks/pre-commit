@@ -4,7 +4,7 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 # pre-commit hook — Lint staged files before commit
 #
-# Managed by dev-lifecycle (https://github.com/goeke-m/dev-lifecycle)
+# Managed by ai-dev-lifecycle (https://github.com/goeke-m/ai-dev-lifecycle)
 # Do not edit manually — regenerate via apply.sh
 # -----------------------------------------------------------------------------
 

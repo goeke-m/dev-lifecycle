@@ -7,10 +7,10 @@ set -euo pipefail
 # Usage: update.sh
 #
 # Environment variables:
-#   LIFECYCLE_DIR  — Path to the dev-lifecycle repo (default: ~/.dev-lifecycle)
+#   LIFECYCLE_DIR  — Path to the ai-dev-lifecycle repo (default: ~/.ai-dev-lifecycle)
 # -----------------------------------------------------------------------------
 
-LIFECYCLE_DIR="${LIFECYCLE_DIR:-$HOME/.dev-lifecycle}"
+LIFECYCLE_DIR="${LIFECYCLE_DIR:-$HOME/.ai-dev-lifecycle}"
 REGISTRY="$LIFECYCLE_DIR/.registered-projects"
 LOG_PREFIX="[$(date '+%Y-%m-%d %H:%M:%S')]"
 
@@ -20,7 +20,7 @@ log_warn(){ echo "$LOG_PREFIX [warn]  $*"; }
 log_err() { echo "$LOG_PREFIX [error] $*" >&2; }
 
 # ── Preflight ─────────────────────────────────────────────────────────────────
-log "dev-lifecycle update starting"
+log "ai-dev-lifecycle update starting"
 log "LIFECYCLE_DIR: $LIFECYCLE_DIR"
 
 if [[ ! -d "$LIFECYCLE_DIR" ]]; then

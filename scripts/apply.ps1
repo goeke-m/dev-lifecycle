@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Apply dev-lifecycle configuration to a project (Windows PowerShell).
+    Apply ai-dev-lifecycle configuration to a project (Windows PowerShell).
 
 .DESCRIPTION
     Reads .devlifecycle.json from the project directory and symlinks lifecycle
@@ -17,7 +17,7 @@
 
 .NOTES
     Symbolic links require either Developer Mode enabled or Administrator rights.
-    Set LIFECYCLE_DIR environment variable to override the default ~/.dev-lifecycle path.
+    Set LIFECYCLE_DIR environment variable to override the default ~/.ai-dev-lifecycle path.
 #>
 
 [CmdletBinding()]
@@ -30,7 +30,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 # ── Resolve paths ─────────────────────────────────────────────────────────────
-$LifecycleDir = if ($env:LIFECYCLE_DIR) { $env:LIFECYCLE_DIR } else { Join-Path $HOME '.dev-lifecycle' }
+$LifecycleDir = if ($env:LIFECYCLE_DIR) { $env:LIFECYCLE_DIR } else { Join-Path $HOME '.ai-dev-lifecycle' }
 $ProjectDir   = (Resolve-Path $ProjectDir).Path
 $ConfigFile   = Join-Path $ProjectDir '.devlifecycle.json'
 
@@ -129,14 +129,14 @@ function Sync-DirContents {
 }
 
 # ── Preflight ─────────────────────────────────────────────────────────────────
-Write-Header "dev-lifecycle apply"
+Write-Header "ai-dev-lifecycle apply"
 Write-Info "LifecycleDir : $LifecycleDir"
 Write-Info "ProjectDir   : $ProjectDir"
 
 if (-not (Test-Path $LifecycleDir)) {
     Write-Err "LifecycleDir does not exist: $LifecycleDir"
-    Write-Err "Clone the dev-lifecycle repo first:"
-    Write-Err "  git clone https://github.com/goeke-m/dev-lifecycle.git $LifecycleDir"
+    Write-Err "Clone the ai-dev-lifecycle repo first:"
+    Write-Err "  git clone https://github.com/goeke-m/ai-dev-lifecycle.git $LifecycleDir"
     exit 1
 }
 
@@ -289,7 +289,7 @@ else {
 # ── Install Task Scheduler task ───────────────────────────────────────────────
 Write-Header "Installing Windows Task Scheduler update task"
 
-$TaskName   = 'dev-lifecycle-daily-update'
+$TaskName   = 'ai-dev-lifecycle-daily-update'
 $UpdateScript = Join-Path $LifecycleDir 'scripts\update.ps1'
 
 $ExistingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
@@ -314,7 +314,7 @@ else {
             -Action $Action `
             -Trigger $Trigger `
             -Settings $Settings `
-            -Description 'Daily dev-lifecycle update — keeps lifecycle files in sync across registered projects.' `
+            -Description 'Daily ai-dev-lifecycle update — keeps lifecycle files in sync across registered projects.' `
             -RunLevel Limited `
             -Force | Out-Null
 
@@ -328,5 +328,5 @@ else {
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 Write-Host ""
-Write-Host "dev-lifecycle applied successfully to: $ProjectDir" -ForegroundColor Green
+Write-Host "ai-dev-lifecycle applied successfully to: $ProjectDir" -ForegroundColor Green
 Write-Host ""

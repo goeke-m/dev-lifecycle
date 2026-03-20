@@ -1,6 +1,6 @@
 # Developer Onboarding
 
-This document covers how to set up the dev-lifecycle on a new machine and how to apply it
+This document covers how to set up the ai-dev-lifecycle on a new machine and how to apply it
 to a project for the first time.
 
 ---
@@ -19,15 +19,15 @@ to a project for the first time.
 
 **Linux / macOS**
 ```bash
-git clone https://github.com/goeke-m/dev-lifecycle.git ~/.dev-lifecycle
+git clone https://github.com/goeke-m/ai-dev-lifecycle.git ~/.ai-dev-lifecycle
 ```
 
 **Windows (PowerShell)**
 ```powershell
-git clone https://github.com/goeke-m/dev-lifecycle.git "$env:USERPROFILE\.dev-lifecycle"
+git clone https://github.com/goeke-m/ai-dev-lifecycle.git "$env:USERPROFILE\.ai-dev-lifecycle"
 ```
 
-> The lifecycle repo lives at `~/.dev-lifecycle` on every machine. The apply scripts default
+> The lifecycle repo lives at `~/.ai-dev-lifecycle` on every machine. The apply scripts default
 > to this path. You can override it with the `LIFECYCLE_DIR` environment variable if needed.
 
 ---
@@ -39,7 +39,7 @@ git clone https://github.com/goeke-m/dev-lifecycle.git "$env:USERPROFILE\.dev-li
 Copy the example config into your project root and edit it:
 
 ```bash
-cp ~/.dev-lifecycle/.devlifecycle.example.json /path/to/your-project/.devlifecycle.json
+cp ~/.ai-dev-lifecycle/.devlifecycle.example.json /path/to/your-project/.devlifecycle.json
 ```
 
 Open `.devlifecycle.json` and set at minimum:
@@ -77,13 +77,13 @@ Open `.devlifecycle.json` and set at minimum:
 **Linux / macOS**
 ```bash
 cd /path/to/your-project
-~/.dev-lifecycle/scripts/apply.sh
+~/.ai-dev-lifecycle/scripts/apply.sh
 ```
 
 **Windows (PowerShell — run as Administrator or with Developer Mode enabled)**
 ```powershell
 cd C:\path\to\your-project
-~\.dev-lifecycle\scripts\apply.ps1
+~\.ai-dev-lifecycle\scripts\apply.ps1
 ```
 
 The script will:
@@ -99,7 +99,7 @@ The script will:
 git add .devlifecycle.json CLAUDE.md
 git add .github/copilot-instructions.md   # if copilot enabled
 git add .cursor/rules/lifecycle.mdc       # if cursor enabled
-git commit -m "chore: add dev-lifecycle configuration"
+git commit -m "chore: add ai-dev-lifecycle configuration"
 ```
 
 > **Why commit the generated files?**
@@ -123,7 +123,7 @@ on:
 
 jobs:
   check:
-    uses: goeke-m/dev-lifecycle/.github/workflows/lifecycle-update.yml@main
+    uses: goeke-m/ai-dev-lifecycle/.github/workflows/lifecycle-update.yml@main
     with:
       project-language: csharp
       enabled-agents: '["claude", "copilot"]'
@@ -151,19 +151,19 @@ If you update `.devlifecycle.json` or want to pull the latest rules immediately:
 
 ```bash
 # Regenerate all enabled agents
-~/.dev-lifecycle/scripts/apply.sh
+~/.ai-dev-lifecycle/scripts/apply.sh
 
 # Or regenerate a single agent
-~/.dev-lifecycle/scripts/generate-agent.sh claude /path/to/project /path/to/project/.devlifecycle.json
+~/.ai-dev-lifecycle/scripts/generate-agent.sh claude /path/to/project /path/to/project/.devlifecycle.json
 ```
 
 ### Pulling the latest lifecycle rules manually
 
 ```bash
-~/.dev-lifecycle/scripts/update.sh
+~/.ai-dev-lifecycle/scripts/update.sh
 ```
 
-This pulls `~/.dev-lifecycle` and re-applies to all registered projects.
+This pulls `~/.ai-dev-lifecycle` and re-applies to all registered projects.
 
 ---
 
@@ -181,20 +181,20 @@ on: [push, pull_request]
 
 jobs:
   build:
-    uses: goeke-m/dev-lifecycle/.github/workflows/build-csharp.yml@main
+    uses: goeke-m/ai-dev-lifecycle/.github/workflows/build-csharp.yml@main
     with:
       dotnet-version: '9.0.x'
       project-path: src/MyApp/MyApp.csproj
 
   test:
-    uses: goeke-m/dev-lifecycle/.github/workflows/test-csharp.yml@main
+    uses: goeke-m/ai-dev-lifecycle/.github/workflows/test-csharp.yml@main
     with:
       dotnet-version: '9.0.x'
       project-path: src/MyApp/MyApp.csproj
 
   pr-check:
     if: github.event_name == 'pull_request'
-    uses: goeke-m/dev-lifecycle/.github/workflows/pr-check.yml@main
+    uses: goeke-m/ai-dev-lifecycle/.github/workflows/pr-check.yml@main
 ```
 
 ### TypeScript build and test
@@ -202,13 +202,13 @@ jobs:
 ```yaml
 jobs:
   build:
-    uses: goeke-m/dev-lifecycle/.github/workflows/build-typescript.yml@main
+    uses: goeke-m/ai-dev-lifecycle/.github/workflows/build-typescript.yml@main
     with:
       node-version: '22'
       package-manager: npm
 
   test:
-    uses: goeke-m/dev-lifecycle/.github/workflows/test-typescript.yml@main
+    uses: goeke-m/ai-dev-lifecycle/.github/workflows/test-typescript.yml@main
     with:
       node-version: '22'
 ```
@@ -240,10 +240,10 @@ winget install jqlang.jq
 You haven't cloned the lifecycle repo yet, or you cloned it to a different path:
 
 ```bash
-git clone https://github.com/goeke-m/dev-lifecycle.git ~/.dev-lifecycle
+git clone https://github.com/goeke-m/ai-dev-lifecycle.git ~/.ai-dev-lifecycle
 # or, if cloned elsewhere:
-export LIFECYCLE_DIR=/path/to/dev-lifecycle
-~/.dev-lifecycle/scripts/apply.sh
+export LIFECYCLE_DIR=/path/to/ai-dev-lifecycle
+~/.ai-dev-lifecycle/scripts/apply.sh
 ```
 
 ### Windows symlink errors
@@ -259,18 +259,18 @@ Hooks must be executable. The apply script sets this, but if you cloned on Windo
 moved to Linux, permissions may have been lost:
 
 ```bash
-chmod +x ~/.dev-lifecycle/hooks/*
-~/.dev-lifecycle/scripts/apply.sh   # re-links hooks with correct permissions
+chmod +x ~/.ai-dev-lifecycle/hooks/*
+~/.ai-dev-lifecycle/scripts/apply.sh   # re-links hooks with correct permissions
 ```
 
 ### Cron job not running
 
 Verify the cron entry was installed:
 ```bash
-crontab -l | grep dev-lifecycle
+crontab -l | grep ai-dev-lifecycle
 ```
 
 If missing, re-run `apply.sh` or add manually:
 ```bash
-(crontab -l; echo "0 8 * * * bash $HOME/.dev-lifecycle/scripts/update.sh >> $HOME/.dev-lifecycle-update.log 2>&1") | crontab -
+(crontab -l; echo "0 8 * * * bash $HOME/.ai-dev-lifecycle/scripts/update.sh >> $HOME/.ai-dev-lifecycle-update.log 2>&1") | crontab -
 ```

@@ -1,9 +1,9 @@
 {
-  "$schema": "https://raw.githubusercontent.com/goeke-m/dev-lifecycle/main/schema.json",
+  "$schema": "https://raw.githubusercontent.com/goeke-m/ai-dev-lifecycle/main/schema.json",
   "project": {
     "name": "my-awesome-project",
     "language": "csharp",
-    "description": "An example project using the dev-lifecycle management system."
+    "description": "An example project using the ai-dev-lifecycle management system."
   },
   "modules": {
     "coding-standards": {

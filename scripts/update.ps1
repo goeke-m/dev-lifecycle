@@ -1,14 +1,14 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Pull latest dev-lifecycle changes and re-apply to all registered projects.
+    Pull latest ai-dev-lifecycle changes and re-apply to all registered projects.
 
 .DESCRIPTION
     Performs a fast-forward git pull on the lifecycle repo, then iterates over
     every registered project and re-runs apply.ps1 to keep files in sync.
 
 .NOTES
-    Set LIFECYCLE_DIR environment variable to override the default ~/.dev-lifecycle path.
+    Set LIFECYCLE_DIR environment variable to override the default ~/.ai-dev-lifecycle path.
     This script is intended to be run by the Windows Task Scheduler task created by apply.ps1.
 #>
 
@@ -16,7 +16,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-$LifecycleDir = if ($env:LIFECYCLE_DIR) { $env:LIFECYCLE_DIR } else { Join-Path $HOME '.dev-lifecycle' }
+$LifecycleDir = if ($env:LIFECYCLE_DIR) { $env:LIFECYCLE_DIR } else { Join-Path $HOME '.ai-dev-lifecycle' }
 $Registry     = Join-Path $LifecycleDir '.registered-projects'
 
 function Get-Timestamp { Get-Date -Format 'yyyy-MM-dd HH:mm:ss' }
@@ -26,7 +26,7 @@ function Log-Warn { param([string]$Msg) Write-Host "[$( Get-Timestamp )] [warn] 
 function Log-Err  { param([string]$Msg) Write-Host "[$( Get-Timestamp )] [error] $Msg" -ForegroundColor Red }
 
 # ── Preflight ─────────────────────────────────────────────────────────────────
-Log "dev-lifecycle update starting"
+Log "ai-dev-lifecycle update starting"
 Log "LifecycleDir: $LifecycleDir"
 
 if (-not (Test-Path $LifecycleDir)) {

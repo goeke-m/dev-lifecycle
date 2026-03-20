@@ -4,7 +4,7 @@ name: Build TypeScript
 #
 #   jobs:
 #     build:
-#       uses: goeke-m/dev-lifecycle/.github/workflows/build-typescript.yml@main
+#       uses: goeke-m/ai-dev-lifecycle/.github/workflows/build-typescript.yml@main
 #       with:
 #         node-version: '22'
 #         package-manager: 'npm'

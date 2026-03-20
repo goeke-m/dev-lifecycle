@@ -168,7 +168,7 @@ npm run build
 ├── tests/                  # Test projects / files
 ├── docs/                   # Documentation
 │   ├── adr/                # Architecture Decision Records
-│   └── templates/          # Doc templates (managed by dev-lifecycle)
+│   └── templates/          # Doc templates (managed by ai-dev-lifecycle)
 ├── .github/                # GitHub Actions workflows and templates
 └── README.md
 ```

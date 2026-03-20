@@ -25,18 +25,18 @@ and auto-updates. If your issue is not listed here, open a discussion in the rep
 ### `LIFECYCLE_DIR does not exist`
 
 ```
-[error] LIFECYCLE_DIR does not exist: /home/you/.dev-lifecycle
+[error] LIFECYCLE_DIR does not exist: /home/you/.ai-dev-lifecycle
 ```
 
 The lifecycle repo has not been cloned, or was cloned to a different path.
 
 ```bash
 # Clone to the default location
-git clone https://github.com/goeke-m/dev-lifecycle.git ~/.dev-lifecycle
+git clone https://github.com/goeke-m/ai-dev-lifecycle.git ~/.ai-dev-lifecycle
 
 # Or point to wherever you cloned it
-export LIFECYCLE_DIR=/custom/path/dev-lifecycle
-~/.dev-lifecycle/scripts/apply.sh
+export LIFECYCLE_DIR=/custom/path/ai-dev-lifecycle
+~/.ai-dev-lifecycle/scripts/apply.sh
 ```
 
 To make the override permanent, add the export to your shell profile (`~/.bashrc`, `~/.zshrc`).
@@ -75,7 +75,7 @@ echo 'export PATH="$PATH:/usr/share/dotnet"' >> ~/.bashrc
 source ~/.bashrc
 
 # Re-link hooks to pick up the updated PATH
-~/.dev-lifecycle/scripts/apply.sh
+~/.ai-dev-lifecycle/scripts/apply.sh
 ```
 
 ---
@@ -91,9 +91,9 @@ source ~/.bashrc
 You need to create a config file in the project root before running apply:
 
 ```bash
-cp ~/.dev-lifecycle/.devlifecycle.example.json .devlifecycle.json
+cp ~/.ai-dev-lifecycle/.devlifecycle.example.json .devlifecycle.json
 # Edit .devlifecycle.json, then re-run:
-~/.dev-lifecycle/scripts/apply.sh
+~/.ai-dev-lifecycle/scripts/apply.sh
 ```
 
 ---
@@ -127,7 +127,7 @@ If a module is enabled but its files are not symlinked, check:
 
    ```bash
    jq '.project.language' .devlifecycle.json
-   ls ~/.dev-lifecycle/modules/coding-standards/
+   ls ~/.ai-dev-lifecycle/modules/coding-standards/
    ```
 
 2. **Is the module directory empty?** Some modules may not have files for every language yet.
@@ -135,7 +135,7 @@ If a module is enabled but its files are not symlinked, check:
 3. **Did the script report a warning?**
 
    ```bash
-   ~/.dev-lifecycle/scripts/apply.sh 2>&1 | grep -i warn
+   ~/.ai-dev-lifecycle/scripts/apply.sh 2>&1 | grep -i warn
    ```
 
 ---
@@ -170,7 +170,7 @@ rm .editorconfig.bak
 
 ```bash
 ls -la .git/hooks/
-# Should show symlinks pointing to ~/.dev-lifecycle/hooks/
+# Should show symlinks pointing to ~/.ai-dev-lifecycle/hooks/
 ```
 
 If missing, re-run `apply.sh`.
@@ -178,14 +178,14 @@ If missing, re-run `apply.sh`.
 **2. Check the hook is executable:**
 
 ```bash
-ls -la ~/.dev-lifecycle/hooks/pre-commit
+ls -la ~/.ai-dev-lifecycle/hooks/pre-commit
 # Should show -rwxr-xr-x
 ```
 
 If not:
 
 ```bash
-chmod +x ~/.dev-lifecycle/hooks/*
+chmod +x ~/.ai-dev-lifecycle/hooks/*
 ```
 
 **3. Check the hook is not being skipped:**
@@ -240,7 +240,7 @@ Common reasons for rejection:
 To check your message before committing:
 
 ```bash
-echo "your commit message" | bash ~/.dev-lifecycle/hooks/commit-msg /dev/stdin
+echo "your commit message" | bash ~/.ai-dev-lifecycle/hooks/commit-msg /dev/stdin
 ```
 
 ---
@@ -271,14 +271,14 @@ If `rules` is empty or missing, add the rule names you want included.
 ### `[warn] Rule file not found, skipping`
 
 ```
-[warn]  Rule file not found, skipping: /home/you/.dev-lifecycle/agents/rules/my-rule.md
+[warn]  Rule file not found, skipping: /home/you/.ai-dev-lifecycle/agents/rules/my-rule.md
 ```
 
 The rule name listed in `.devlifecycle.json` does not match any file in `agents/rules/`.
 List available rules:
 
 ```bash
-ls ~/.dev-lifecycle/agents/rules/
+ls ~/.ai-dev-lifecycle/agents/rules/
 ```
 
 Check for typos in your config. Rule names are the filename without `.md`:
@@ -336,16 +336,16 @@ GitHub Copilot loads instructions from `.github/copilot-instructions.md`. Ensure
 
 ### Symlinks are broken after cloning on another machine
 
-Symlinks committed to git point to absolute paths (e.g. `/home/you/.dev-lifecycle/...`).
+Symlinks committed to git point to absolute paths (e.g. `/home/you/.ai-dev-lifecycle/...`).
 If that path does not exist on the new machine, the symlinks will be broken.
 
 **Fix:** run `apply.sh` on the new machine after cloning the lifecycle repo. The script
 will replace broken symlinks with new ones pointing to the correct local path.
 
 ```bash
-git clone https://github.com/goeke-m/dev-lifecycle.git ~/.dev-lifecycle
+git clone https://github.com/goeke-m/ai-dev-lifecycle.git ~/.ai-dev-lifecycle
 cd /path/to/project
-~/.dev-lifecycle/scripts/apply.sh
+~/.ai-dev-lifecycle/scripts/apply.sh
 ```
 
 ---
@@ -359,10 +359,10 @@ file). If you are seeing stale content:
 ```bash
 # Verify the symlink target is correct
 readlink .editorconfig
-# Should point to ~/.dev-lifecycle/modules/coding-standards/csharp/.editorconfig
+# Should point to ~/.ai-dev-lifecycle/modules/coding-standards/csharp/.editorconfig
 
 # Pull the latest lifecycle content
-~/.dev-lifecycle/scripts/update.sh
+~/.ai-dev-lifecycle/scripts/update.sh
 ```
 
 ---
@@ -374,13 +374,13 @@ readlink .editorconfig
 Verify:
 
 ```bash
-crontab -l | grep dev-lifecycle
+crontab -l | grep ai-dev-lifecycle
 ```
 
 If missing, install manually:
 
 ```bash
-(crontab -l 2>/dev/null; echo "# dev-lifecycle-update"; echo "0 8 * * * LIFECYCLE_DIR=$HOME/.dev-lifecycle bash $HOME/.dev-lifecycle/scripts/update.sh >> $HOME/.dev-lifecycle-update.log 2>&1") | crontab -
+(crontab -l 2>/dev/null; echo "# ai-dev-lifecycle-update"; echo "0 8 * * * LIFECYCLE_DIR=$HOME/.ai-dev-lifecycle bash $HOME/.ai-dev-lifecycle/scripts/update.sh >> $HOME/.ai-dev-lifecycle-update.log 2>&1") | crontab -
 ```
 
 Or re-run `apply.sh` — it installs the cron job automatically.
@@ -392,7 +392,7 @@ Or re-run `apply.sh` — it installs the cron job automatically.
 If someone has made local changes to the lifecycle repo that conflict with upstream:
 
 ```bash
-cd ~/.dev-lifecycle
+cd ~/.ai-dev-lifecycle
 git status          # see what is modified
 git stash           # stash local changes
 git pull --ff-only  # pull upstream
@@ -412,11 +412,11 @@ To clean up the registry:
 
 ```bash
 # View registered projects
-cat ~/.dev-lifecycle/.registered-projects
+cat ~/.ai-dev-lifecycle/.registered-projects
 
 # Remove a stale entry
-grep -v "/old/path/to/project" ~/.dev-lifecycle/.registered-projects > /tmp/projects.tmp
-mv /tmp/projects.tmp ~/.dev-lifecycle/.registered-projects
+grep -v "/old/path/to/project" ~/.ai-dev-lifecycle/.registered-projects > /tmp/projects.tmp
+mv /tmp/projects.tmp ~/.ai-dev-lifecycle/.registered-projects
 ```
 
 ---
@@ -426,7 +426,7 @@ mv /tmp/projects.tmp ~/.dev-lifecycle/.registered-projects
 Verify the task exists:
 
 ```powershell
-Get-ScheduledTask -TaskName "dev-lifecycle-update"
+Get-ScheduledTask -TaskName "ai-dev-lifecycle-update"
 ```
 
 If missing, re-run `apply.ps1` as Administrator to reinstall it.
@@ -434,30 +434,30 @@ If missing, re-run `apply.ps1` as Administrator to reinstall it.
 To run it immediately for testing:
 
 ```powershell
-Start-ScheduledTask -TaskName "dev-lifecycle-update"
+Start-ScheduledTask -TaskName "ai-dev-lifecycle-update"
 ```
 
 Check the log:
 
 ```powershell
-Get-Content "$env:USERPROFILE\.dev-lifecycle-update.log" -Tail 50
+Get-Content "$env:USERPROFILE\.ai-dev-lifecycle-update.log" -Tail 50
 ```
 
 ---
 
 ## CI/CD and Reusable Workflows
 
-### `uses: goeke-m/dev-lifecycle/...` — workflow not found
+### `uses: goeke-m/ai-dev-lifecycle/...` — workflow not found
 
 Ensure:
 
-1. The workflow file exists in `.github/workflows/` in the `dev-lifecycle` repo
+1. The workflow file exists in `.github/workflows/` in the `ai-dev-lifecycle` repo
 2. The repo is **public**, or the consuming repo is in the same GitHub organisation
 3. The workflow file has `on: workflow_call:` at the top
 
 ```bash
 # Verify the file exists
-gh api repos/goeke-m/dev-lifecycle/contents/.github/workflows
+gh api repos/goeke-m/ai-dev-lifecycle/contents/.github/workflows
 ```
 
 ---
@@ -473,7 +473,7 @@ block.
 ### `setup-lifecycle` composite action: symlinks not resolving in CI
 
 In CI, the runner's home directory differs from a developer machine. The composite action
-checks out the lifecycle repo to `~/.dev-lifecycle` on the runner. If symlinks committed
+checks out the lifecycle repo to `~/.ai-dev-lifecycle` on the runner. If symlinks committed
 to the project repo point to a developer's home path, they will not resolve.
 
 **Do not commit symlinks to the project repo.** Committed files should be the generated
@@ -520,7 +520,7 @@ find it, the symlink may be broken:
 ```bash
 ls -la eslint.config.js
 # If it shows a broken symlink (red in most terminals):
-~/.dev-lifecycle/scripts/apply.sh
+~/.ai-dev-lifecycle/scripts/apply.sh
 ```
 
 ---
@@ -554,7 +554,7 @@ ls -la vitest.config.base.ts
 ### Run apply.sh with verbose output
 
 ```bash
-bash -x ~/.dev-lifecycle/scripts/apply.sh 2>&1 | less
+bash -x ~/.ai-dev-lifecycle/scripts/apply.sh 2>&1 | less
 ```
 
 `-x` prints every command as it executes, making it easy to see exactly where a failure occurs.
@@ -563,16 +563,16 @@ bash -x ~/.dev-lifecycle/scripts/apply.sh 2>&1 | less
 
 ```bash
 # Linux / macOS
-tail -100 ~/.dev-lifecycle-update.log
+tail -100 ~/.ai-dev-lifecycle-update.log
 
 # Windows
-Get-Content "$env:USERPROFILE\.dev-lifecycle-update.log" -Tail 100
+Get-Content "$env:USERPROFILE\.ai-dev-lifecycle-update.log" -Tail 100
 ```
 
 ### Verify the lifecycle repo is clean and up to date
 
 ```bash
-cd ~/.dev-lifecycle
+cd ~/.ai-dev-lifecycle
 git status          # should be clean
 git log --oneline -5  # check you are on the latest commits
 git pull --ff-only
@@ -584,7 +584,7 @@ If you are unsure of the state of your project's lifecycle setup, re-running `ap
 is always safe — it is idempotent:
 
 ```bash
-~/.dev-lifecycle/scripts/apply.sh /path/to/project
+~/.ai-dev-lifecycle/scripts/apply.sh /path/to/project
 ```
 
 It will skip already-correct symlinks, back up any conflicting files, and reinstall hooks

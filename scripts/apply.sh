@@ -2,15 +2,15 @@
 set -euo pipefail
 
 # -----------------------------------------------------------------------------
-# apply.sh — Apply dev-lifecycle configuration to a project
+# apply.sh — Apply ai-dev-lifecycle configuration to a project
 #
 # Usage: apply.sh [project-dir]
 #
 # Environment variables:
-#   LIFECYCLE_DIR  — Path to the dev-lifecycle repo (default: ~/.dev-lifecycle)
+#   LIFECYCLE_DIR  — Path to the ai-dev-lifecycle repo (default: ~/.ai-dev-lifecycle)
 # -----------------------------------------------------------------------------
 
-LIFECYCLE_DIR="${LIFECYCLE_DIR:-$HOME/.dev-lifecycle}"
+LIFECYCLE_DIR="${LIFECYCLE_DIR:-$HOME/.ai-dev-lifecycle}"
 PROJECT_DIR="${1:-$(pwd)}"
 PROJECT_DIR="$(cd "$PROJECT_DIR" && pwd)"
 CONFIG_FILE="$PROJECT_DIR/.devlifecycle.json"
@@ -30,14 +30,14 @@ error()   { echo -e "${RED}[error]${RESET} $*" >&2; }
 header()  { echo -e "\n${BOLD}${CYAN}==> $*${RESET}"; }
 
 # ── Preflight checks ──────────────────────────────────────────────────────────
-header "dev-lifecycle apply"
+header "ai-dev-lifecycle apply"
 info "LIFECYCLE_DIR : $LIFECYCLE_DIR"
 info "PROJECT_DIR   : $PROJECT_DIR"
 
 if [[ ! -d "$LIFECYCLE_DIR" ]]; then
   error "LIFECYCLE_DIR does not exist: $LIFECYCLE_DIR"
-  error "Clone the dev-lifecycle repo first:"
-  error "  git clone https://github.com/goeke-m/dev-lifecycle.git $LIFECYCLE_DIR"
+  error "Clone the ai-dev-lifecycle repo first:"
+  error "  git clone https://github.com/goeke-m/ai-dev-lifecycle.git $LIFECYCLE_DIR"
   exit 1
 fi
 
@@ -236,7 +236,7 @@ header "Installing update cron job"
 
 UPDATE_SCRIPT="$LIFECYCLE_DIR/scripts/update.sh"
 CRON_CMD="0 8 * * * LIFECYCLE_DIR=$LIFECYCLE_DIR bash $UPDATE_SCRIPT >> $LIFECYCLE_DIR/update.log 2>&1"
-CRON_MARKER="dev-lifecycle-update"
+CRON_MARKER="ai-dev-lifecycle-update"
 
 # Check if cron entry already exists
 if crontab -l 2>/dev/null | grep -q "$CRON_MARKER"; then
@@ -253,5 +253,5 @@ fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${GREEN}${BOLD}dev-lifecycle applied successfully to: $PROJECT_DIR${RESET}"
+echo -e "${GREEN}${BOLD}ai-dev-lifecycle applied successfully to: $PROJECT_DIR${RESET}"
 echo ""

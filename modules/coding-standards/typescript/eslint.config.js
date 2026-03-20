@@ -1,5 +1,5 @@
 // eslint.config.js — Flat ESLint config (ESLint v9)
-// Managed by dev-lifecycle (https://github.com/goeke-m/dev-lifecycle)
+// Managed by ai-dev-lifecycle (https://github.com/goeke-m/ai-dev-lifecycle)
 // Extend this in consuming projects:
 //   import baseConfig from './eslint.config.base.js';
 //   export default [...baseConfig, { /* project-specific overrides */ }];

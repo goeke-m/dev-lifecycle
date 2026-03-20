@@ -1,4 +1,4 @@
-# dev-lifecycle
+# ai-dev-lifecycle
 
 A cross-platform development lifecycle management system for C# and TypeScript projects. Provides a single source of truth for coding standards, git hooks, PR templates, test configuration, documentation templates, and AI agent instructions across all your repositories.
 
@@ -8,7 +8,7 @@ A cross-platform development lifecycle management system for C# and TypeScript p
 
 ## What This Is
 
-`dev-lifecycle` is a meta-repository that you clone once to your machine (or to a CI runner) and then "apply" to each of your projects. Applying it:
+`ai-dev-lifecycle` is a meta-repository that you clone once to your machine (or to a CI runner) and then "apply" to each of your projects. Applying it:
 
 - **Symlinks** configuration files (`.editorconfig`, `eslint.config.js`, `tsconfig.base.json`, etc.) from the lifecycle repo into your project root, so updates propagate automatically
 - **Installs** git hooks (`pre-commit`, `commit-msg`) that enforce code quality and Conventional Commits before a commit is recorded
@@ -49,18 +49,18 @@ winget install jqlang.jq
 
 ## Setup
 
-### 1. Clone to `~/.dev-lifecycle`
+### 1. Clone to `~/.ai-dev-lifecycle`
 
-The default location for the lifecycle repo is `~/.dev-lifecycle`. All scripts default to this path, but you can override it via the `LIFECYCLE_DIR` environment variable.
+The default location for the lifecycle repo is `~/.ai-dev-lifecycle`. All scripts default to this path, but you can override it via the `LIFECYCLE_DIR` environment variable.
 
 ```bash
-git clone https://github.com/goeke-m/dev-lifecycle.git ~/.dev-lifecycle
+git clone https://github.com/goeke-m/ai-dev-lifecycle.git ~/.ai-dev-lifecycle
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-git clone https://github.com/goeke-m/dev-lifecycle.git "$HOME\.dev-lifecycle"
+git clone https://github.com/goeke-m/ai-dev-lifecycle.git "$HOME\.ai-dev-lifecycle"
 ```
 
 ---
@@ -72,7 +72,7 @@ git clone https://github.com/goeke-m/dev-lifecycle.git "$HOME\.dev-lifecycle"
 Copy the example config and edit it to enable the modules, hooks, and agents you want:
 
 ```bash
-cp ~/.dev-lifecycle/.devlifecycle.example.json myproject/.devlifecycle.json
+cp ~/.ai-dev-lifecycle/.devlifecycle.example.json myproject/.devlifecycle.json
 ```
 
 See the [Config Reference](#config-reference) section for all available options.
@@ -81,13 +81,13 @@ See the [Config Reference](#config-reference) section for all available options.
 
 ```bash
 # Apply to the current directory
-bash ~/.dev-lifecycle/scripts/apply.sh
+bash ~/.ai-dev-lifecycle/scripts/apply.sh
 
 # Apply to a specific project
-bash ~/.dev-lifecycle/scripts/apply.sh /path/to/myproject
+bash ~/.ai-dev-lifecycle/scripts/apply.sh /path/to/myproject
 
 # Override the lifecycle directory
-LIFECYCLE_DIR=/opt/dev-lifecycle bash /opt/dev-lifecycle/scripts/apply.sh
+LIFECYCLE_DIR=/opt/ai-dev-lifecycle bash /opt/ai-dev-lifecycle/scripts/apply.sh
 ```
 
 ### 2. Run `apply.ps1` (Windows)
@@ -96,10 +96,10 @@ Open PowerShell 7 as your normal user (Developer Mode enables symlinks without r
 
 ```powershell
 # Apply to the current directory
-& "$HOME\.dev-lifecycle\scripts\apply.ps1"
+& "$HOME\.ai-dev-lifecycle\scripts\apply.ps1"
 
 # Apply to a specific project
-& "$HOME\.dev-lifecycle\scripts\apply.ps1" -ProjectDir C:\Projects\myproject
+& "$HOME\.ai-dev-lifecycle\scripts\apply.ps1" -ProjectDir C:\Projects\myproject
 ```
 
 > **Windows symlinks:** Symbolic links require either Developer Mode (Settings > System > For developers) or running as Administrator. If neither is available, `apply.ps1` falls back to copying files — updates will not propagate automatically.
@@ -110,19 +110,19 @@ For each enabled module, it symlinks the relevant files into your project. Then 
 
 1. Installs git hooks as symlinks in `.git/hooks/`
 2. Generates agent instruction files (CLAUDE.md, copilot-instructions.md, etc.)
-3. Registers your project path in `~/.dev-lifecycle/.registered-projects`
+3. Registers your project path in `~/.ai-dev-lifecycle/.registered-projects`
 4. Installs a cron job / Task Scheduler task for daily auto-updates
 
 After running `apply`, you should see the following new files/symlinks in your project (depending on your config):
 
 ```
 myproject/
-├── .editorconfig              ← symlink → ~/.dev-lifecycle/modules/coding-standards/csharp/.editorconfig
-├── Directory.Build.props      ← symlink → ~/.dev-lifecycle/modules/coding-standards/csharp/Directory.Build.props
-├── Directory.Packages.props   ← symlink → ~/.dev-lifecycle/modules/scaffolding/csharp/Directory.Packages.props
-├── coverlet.runsettings       ← symlink → ~/.dev-lifecycle/modules/testing/csharp/coverlet.runsettings
+├── .editorconfig              ← symlink → ~/.ai-dev-lifecycle/modules/coding-standards/csharp/.editorconfig
+├── Directory.Build.props      ← symlink → ~/.ai-dev-lifecycle/modules/coding-standards/csharp/Directory.Build.props
+├── Directory.Packages.props   ← symlink → ~/.ai-dev-lifecycle/modules/scaffolding/csharp/Directory.Packages.props
+├── coverlet.runsettings       ← symlink → ~/.ai-dev-lifecycle/modules/testing/csharp/coverlet.runsettings
 ├── .github/
-│   └── PULL_REQUEST_TEMPLATE.md ← symlink → ~/.dev-lifecycle/modules/pr-workflows/github/...
+│   └── PULL_REQUEST_TEMPLATE.md ← symlink → ~/.ai-dev-lifecycle/modules/pr-workflows/github/...
 ├── docs/
 │   └── templates/
 │       ├── README.md          ← symlink
@@ -309,7 +309,7 @@ All workflows in `.github/workflows/` are designed as [reusable workflows](https
 ```yaml
 jobs:
   build:
-    uses: goeke-m/dev-lifecycle/.github/workflows/build-csharp.yml@main
+    uses: goeke-m/ai-dev-lifecycle/.github/workflows/build-csharp.yml@main
     with:
       dotnet-version: '9.0.x'
       project-path: 'src/MyProject/MyProject.csproj'
@@ -321,7 +321,7 @@ jobs:
 ```yaml
 jobs:
   test:
-    uses: goeke-m/dev-lifecycle/.github/workflows/test-csharp.yml@main
+    uses: goeke-m/ai-dev-lifecycle/.github/workflows/test-csharp.yml@main
     with:
       dotnet-version: '9.0.x'
       project-path: 'tests/'
@@ -333,7 +333,7 @@ jobs:
 ```yaml
 jobs:
   build:
-    uses: goeke-m/dev-lifecycle/.github/workflows/build-typescript.yml@main
+    uses: goeke-m/ai-dev-lifecycle/.github/workflows/build-typescript.yml@main
     with:
       node-version: '22'
       package-manager: 'npm'
@@ -348,7 +348,7 @@ on:
 
 jobs:
   pr-check:
-    uses: goeke-m/dev-lifecycle/.github/workflows/pr-check.yml@main
+    uses: goeke-m/ai-dev-lifecycle/.github/workflows/pr-check.yml@main
     with:
       require-description: true
       min-description-length: 50
@@ -364,7 +364,7 @@ on:
 
 jobs:
   lifecycle-update:
-    uses: goeke-m/dev-lifecycle/.github/workflows/lifecycle-update.yml@main
+    uses: goeke-m/ai-dev-lifecycle/.github/workflows/lifecycle-update.yml@main
     with:
       project-language: csharp
       enabled-modules: 'coding-standards,pr-workflows,testing'
@@ -378,7 +378,7 @@ The `setup-lifecycle` composite action checks out the lifecycle repo in CI so sc
 ```yaml
 steps:
   - uses: actions/checkout@v4
-  - uses: goeke-m/dev-lifecycle/.github/actions/setup-lifecycle@main
+  - uses: goeke-m/ai-dev-lifecycle/.github/actions/setup-lifecycle@main
     with:
       lifecycle-ref: main
   - run: bash $LIFECYCLE_DIR/scripts/generate-agent.sh claude . .devlifecycle.json
@@ -390,7 +390,7 @@ steps:
 
 ### How it works
 
-1. `apply.sh` registers your project path in `~/.dev-lifecycle/.registered-projects`
+1. `apply.sh` registers your project path in `~/.ai-dev-lifecycle/.registered-projects`
 2. `apply.sh` installs a cron job (Linux/macOS) or Task Scheduler task (Windows) that runs `update.sh` / `update.ps1` daily at 8am
 3. `update.sh` does `git pull --ff-only` on the lifecycle repo, then re-runs `apply.sh` for every registered project
 4. Since module files are symlinks, changes to the lifecycle repo are immediately reflected in all projects — no re-apply needed for symlinked files
@@ -400,10 +400,10 @@ steps:
 
 ```bash
 # Update all registered projects
-bash ~/.dev-lifecycle/scripts/update.sh
+bash ~/.ai-dev-lifecycle/scripts/update.sh
 
 # Check the update log
-tail -50 ~/.dev-lifecycle/update.log
+tail -50 ~/.ai-dev-lifecycle/update.log
 ```
 
 ### CI-based update
@@ -451,8 +451,8 @@ Contributions are welcome. Before opening a PR:
 Git does not track executable bits on Windows. After cloning on Linux/macOS, mark hook files as executable:
 
 ```bash
-chmod +x ~/.dev-lifecycle/hooks/*
-chmod +x ~/.dev-lifecycle/scripts/*.sh
+chmod +x ~/.ai-dev-lifecycle/hooks/*
+chmod +x ~/.ai-dev-lifecycle/scripts/*.sh
 ```
 
 `apply.sh` does this automatically when it symlinks hooks into `.git/hooks/`.

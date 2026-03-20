@@ -1,6 +1,6 @@
-name: Setup dev-lifecycle
+name: Setup ai-dev-lifecycle
 description: >
-  Checks out the dev-lifecycle repository to ~/.dev-lifecycle (or a
+  Checks out the ai-dev-lifecycle repository to ~/.ai-dev-lifecycle (or a
   configurable path) so that lifecycle scripts and module files are available
   during a CI workflow run.
 
@@ -10,7 +10,7 @@ inputs:
   lifecycle-dir:
     description: >
       The directory to check out the lifecycle repo into.
-      Defaults to ~/.dev-lifecycle.
+      Defaults to ~/.ai-dev-lifecycle.
     required: false
     default: ''
 
@@ -24,9 +24,9 @@ inputs:
   lifecycle-repo:
     description: >
       The GitHub repository containing the lifecycle definitions.
-      Defaults to 'goeke-m/dev-lifecycle'.
+      Defaults to 'goeke-m/ai-dev-lifecycle'.
     required: false
-    default: 'goeke-m/dev-lifecycle'
+    default: 'goeke-m/ai-dev-lifecycle'
 
   token:
     description: >
@@ -59,7 +59,7 @@ runs:
         if [ -n "${{ inputs.lifecycle-dir }}" ]; then
           DIR="${{ inputs.lifecycle-dir }}"
         else
-          DIR="${HOME}/.dev-lifecycle"
+          DIR="${HOME}/.ai-dev-lifecycle"
         fi
 
         echo "lifecycle-dir=$DIR" >> "$GITHUB_OUTPUT"
@@ -72,12 +72,12 @@ runs:
       with:
         path: ${{ steps.resolve-dir.outputs.lifecycle-dir }}
         # Cache key includes the ref so different branches get separate caches
-        key: dev-lifecycle-${{ inputs.lifecycle-ref }}-${{ github.run_id }}
+        key: ai-dev-lifecycle-${{ inputs.lifecycle-ref }}-${{ github.run_id }}
         restore-keys: |
-          dev-lifecycle-${{ inputs.lifecycle-ref }}-
-          dev-lifecycle-main-
+          ai-dev-lifecycle-${{ inputs.lifecycle-ref }}-
+          ai-dev-lifecycle-main-
 
-    - name: Checkout dev-lifecycle repository
+    - name: Checkout ai-dev-lifecycle repository
       if: steps.cache-lifecycle.outputs.cache-hit != 'true'
       uses: actions/checkout@v4
       with:

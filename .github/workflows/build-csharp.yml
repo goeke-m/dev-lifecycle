@@ -4,7 +4,7 @@ name: Build C#
 #
 #   jobs:
 #     build:
-#       uses: goeke-m/dev-lifecycle/.github/workflows/build-csharp.yml@main
+#       uses: goeke-m/ai-dev-lifecycle/.github/workflows/build-csharp.yml@main
 #       with:
 #         dotnet-version: '9.0.x'
 #         project-path: 'src/MyProject/MyProject.csproj'

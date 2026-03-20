@@ -4,7 +4,7 @@ name: Test TypeScript
 #
 #   jobs:
 #     test:
-#       uses: goeke-m/dev-lifecycle/.github/workflows/test-typescript.yml@main
+#       uses: goeke-m/ai-dev-lifecycle/.github/workflows/test-typescript.yml@main
 #       with:
 #         node-version: '22'
 #         package-manager: 'npm'

@@ -5,7 +5,7 @@ name: PR Check
 #
 #   jobs:
 #     pr-check:
-#       uses: goeke-m/dev-lifecycle/.github/workflows/pr-check.yml@main
+#       uses: goeke-m/ai-dev-lifecycle/.github/workflows/pr-check.yml@main
 #       with:
 #         require-description: true
 

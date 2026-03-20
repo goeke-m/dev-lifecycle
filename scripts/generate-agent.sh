@@ -134,7 +134,14 @@ OUTPUT_CONTENT="${OUTPUT_CONTENT//\{\{ENABLED_MODULES\}\}/$ENABLED_MODULES}"
 OUTPUT_CONTENT="${OUTPUT_CONTENT//\{\{BUILD_CMD\}\}/$BUILD_CMD}"
 OUTPUT_CONTENT="${OUTPUT_CONTENT//\{\{TEST_CMD\}\}/$TEST_CMD}"
 OUTPUT_CONTENT="${OUTPUT_CONTENT//\{\{LINT_CMD\}\}/$LINT_CMD}"
-OUTPUT_CONTENT="${OUTPUT_CONTENT//\{\{RULES_CONTENT\}\}/$RULES_CONTENT}"
+# Use Python3 for RULES_CONTENT substitution — bash parameter expansion treats '&'
+# as a backreference to the matched string, corrupting any '&&' in rule content.
+OUTPUT_CONTENT="$(python3 -c "
+import sys
+content = sys.argv[1]
+rules   = sys.argv[2]
+print(content.replace('{{RULES_CONTENT}}', rules), end='')
+" "$OUTPUT_CONTENT" "$RULES_CONTENT")"
 
 # ── Write output ──────────────────────────────────────────────────────────────
 OUTPUT_DIR="$(dirname "$OUTPUT_FILE")"

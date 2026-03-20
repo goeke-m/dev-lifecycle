@@ -187,6 +187,170 @@ For single-service apps, still use `ServiceDefaults` if OpenTelemetry and health
 
 ---
 
+## Database Migrations Run Automatically and Must Be Reversible
+
+Migrations are bundled as part of the deployment artefact and applied automatically in every
+environment — including production — without manual intervention. Every migration must have a
+working `Down` method and must be safe to roll back without data loss.
+
+### Bundle migrations with the application
+
+Use EF Core migration bundles to produce a self-contained executable that is run as a
+deployment step, not `dotnet ef database update` run manually on a developer machine.
+
+```bash
+# Generate the bundle (run in CI, not locally)
+dotnet ef migrations bundle \
+  --project src/MyApp.Infrastructure \
+  --startup-project src/MyApp.Api \
+  --output artifacts/migrationbundle \
+  --self-contained \
+  --runtime linux-x64
+```
+
+The bundle is a versioned artefact stored alongside the application image. The same bundle
+that was tested in staging is what runs in production.
+
+### Run migrations automatically on deployment
+
+With .NET Aspire, add a dedicated migration runner that runs before dependent services start:
+
+```csharp
+// AppHost/Program.cs
+var migrations = builder.AddProject<Projects.MyApp_Migrations>("migrations")
+    .WithReference(db)
+    .WithHttpHealthCheck("/health");
+
+// API waits for migrations to complete before starting
+var api = builder.AddProject<Projects.MyApp_Api>("api")
+    .WithReference(db)
+    .WaitForCompletion(migrations);
+```
+
+```csharp
+// MyApp.Migrations/Program.cs — standalone migration runner service
+var builder = WebApplication.CreateBuilder(args);
+builder.AddServiceDefaults();
+builder.Services.AddDbContext<AppDbContext>(...);
+
+var app = builder.Build();
+app.MapHealthChecks("/health");
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
+
+await app.RunAsync();
+```
+
+Without Aspire, apply migrations at startup with a guard:
+
+```csharp
+// Startup migration — acceptable for simple single-instance deployments
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
+```
+
+### Every migration must have a working Down method
+
+The `Down` method must restore the schema to its exact prior state. A migration with an empty
+or `throw new NotImplementedException()` `Down` method must not be merged.
+
+```csharp
+// Good — both directions are implemented and tested
+public partial class AddOrderShippedAtColumn : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.AddColumn<DateTimeOffset>(
+            name:      "ShippedAt",
+            table:     "Orders",
+            nullable:  true);
+    }
+
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropColumn(
+            name:  "ShippedAt",
+            table: "Orders");
+    }
+}
+
+// Bad — rollback is impossible
+protected override void Down(MigrationBuilder migrationBuilder)
+    => throw new NotImplementedException();
+```
+
+### Use the expand/contract pattern for zero-downtime schema changes
+
+Never make a breaking schema change in a single migration if the application is deployed
+without downtime. Use the expand/contract pattern across multiple deployments:
+
+**Phase 1 — Expand (additive, backward-compatible):**
+Add the new column/table as nullable or with a default. Both old and new application code work.
+
+```csharp
+migrationBuilder.AddColumn<string>(
+    name:         "PhoneNumber",
+    table:        "Customers",
+    nullable:     true,       // old code ignores it; new code writes it
+    defaultValue: null);
+```
+
+**Phase 2 — Migrate data** (if needed, in a background job, not the migration itself):
+```csharp
+// Background job — not inside a migration
+await _context.Customers
+    .Where(c => c.PhoneNumber == null && c.LegacyPhone != null)
+    .ExecuteUpdateAsync(s => s.SetProperty(c => c.PhoneNumber, c => c.LegacyPhone));
+```
+
+**Phase 3 — Contract (remove old column after all instances run new code):**
+```csharp
+migrationBuilder.DropColumn(name: "LegacyPhone", table: "Customers");
+```
+
+### Never drop columns or tables in the same migration that removes code referencing them
+
+Dropping a column while the running application still references it causes immediate failures.
+Always deploy the code removal first, verify, then drop the column in a subsequent release.
+
+### Avoid data mutations inside migrations
+
+Migrations change schema. Data backfills should be separate, idempotent background jobs.
+Mixing data changes into migrations makes rollback dangerous and slows deployments.
+
+```csharp
+// Bad — data change inside a migration
+migrationBuilder.Sql(
+    "UPDATE Orders SET Status = 'Pending' WHERE Status IS NULL");
+
+// Good — schema only in the migration; data fixed by a separate idempotent job
+```
+
+### Test rollback in CI
+
+The migration pipeline in CI must apply the migration and then immediately roll it back,
+verifying the `Down` method works against the same database state:
+
+```yaml
+# .github/workflows/test-migrations.yml (example CI step)
+- name: Apply migration
+  run: ./artifacts/migrationbundle --connection "${{ secrets.DB_CONNECTION }}"
+
+- name: Roll back migration
+  run: dotnet ef database update PreviousMigrationName \
+         --project src/MyApp.Infrastructure \
+         --startup-project src/MyApp.Api
+```
+
+---
+
 ## Prefer Smart Enums over plain C# enums
 
 Plain `enum` types lack behaviour, are stringly-typed at the boundary, and cannot be extended

@@ -59,7 +59,8 @@
         "pr-standards",
         "testing",
         "csharp-conventions",
-        "dotnet-architecture"
+        "dotnet-architecture",
+        "security"
       ]
     },
     "copilot": {
@@ -69,7 +70,8 @@
         "pr-standards",
         "testing",
         "csharp-conventions",
-        "dotnet-architecture"
+        "dotnet-architecture",
+        "security"
       ]
     },
     "cursor": {
@@ -79,7 +81,8 @@
         "pr-standards",
         "testing",
         "csharp-conventions",
-        "dotnet-architecture"
+        "dotnet-architecture",
+        "security"
       ]
     }
   },

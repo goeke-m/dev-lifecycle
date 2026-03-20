@@ -187,6 +187,160 @@ For single-service apps, still use `ServiceDefaults` if OpenTelemetry and health
 
 ---
 
+## Prefer the Query Specification Pattern for data access
+
+Encapsulate query logic in specification objects rather than proliferating repository methods
+or leaking query concerns into services.
+
+### Define a base specification
+
+```csharp
+// Shared infrastructure — define once
+public abstract class Specification<T>
+{
+    public Expression<Func<T, bool>>? Criteria { get; protected init; }
+    public List<Expression<Func<T, object>>> Includes { get; } = [];
+    public Expression<Func<T, object>>? OrderBy { get; protected init; }
+    public Expression<Func<T, object>>? OrderByDescending { get; protected init; }
+    public int? Take { get; protected init; }
+    public int? Skip { get; protected init; }
+}
+```
+
+### Write concrete specifications per query intent
+
+```csharp
+// Good — query logic lives in the specification, named for its intent
+public sealed class ActiveOrdersByCustomerSpec : Specification<Order>
+{
+    public ActiveOrdersByCustomerSpec(Guid customerId, int pageSize, int page)
+    {
+        Criteria         = o => o.CustomerId == customerId && o.Status != OrderStatus.Cancelled;
+        OrderByDescending = o => o.CreatedAt;
+        Includes.Add(o => o.LineItems);
+        Take = pageSize;
+        Skip = pageSize * (page - 1);
+    }
+}
+
+// Bad — a new repository method for every query variation
+public interface IOrderRepository
+{
+    Task<List<Order>> GetActiveOrdersByCustomerAsync(Guid customerId, ...);
+    Task<List<Order>> GetActiveOrdersByCustomerSortedByDateAsync(Guid customerId, ...);
+    Task<List<Order>> GetActiveOrdersByCustomerWithItemsAsync(Guid customerId, ...);
+    // grows without bound
+}
+```
+
+### Keep the repository interface generic
+
+```csharp
+public interface IRepository<T> where T : class
+{
+    Task<T?>             GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<T?>             FirstOrDefaultAsync(Specification<T> spec, CancellationToken ct = default);
+    Task<List<T>>        ListAsync(Specification<T> spec, CancellationToken ct = default);
+    Task<int>            CountAsync(Specification<T> spec, CancellationToken ct = default);
+    Task<bool>           AnyAsync(Specification<T> spec, CancellationToken ct = default);
+    Task                 AddAsync(T entity, CancellationToken ct = default);
+    Task                 UpdateAsync(T entity, CancellationToken ct = default);
+    Task                 DeleteAsync(T entity, CancellationToken ct = default);
+}
+```
+
+### Apply the specification in the repository implementation
+
+```csharp
+// EF Core implementation — evaluate spec once, not per call-site
+public async Task<List<T>> ListAsync(Specification<T> spec, CancellationToken ct)
+{
+    var query = ApplySpecification(spec);
+    return await query.ToListAsync(ct);
+}
+
+private IQueryable<T> ApplySpecification(Specification<T> spec)
+{
+    var query = _context.Set<T>().AsQueryable();
+
+    if (spec.Criteria is not null)
+        query = query.Where(spec.Criteria);
+
+    query = spec.Includes.Aggregate(query,
+        (current, include) => current.Include(include));
+
+    if (spec.OrderBy is not null)
+        query = query.OrderBy(spec.OrderBy);
+    else if (spec.OrderByDescending is not null)
+        query = query.OrderByDescending(spec.OrderByDescending);
+
+    if (spec.Skip.HasValue)
+        query = query.Skip(spec.Skip.Value);
+
+    if (spec.Take.HasValue)
+        query = query.Take(spec.Take.Value);
+
+    return query;
+}
+```
+
+### Use specifications in services, not raw queries
+
+```csharp
+// Good — service composes specs; no EF Core leaks
+public async Task<PagedResult<OrderResponse>> GetCustomerOrdersAsync(
+    Guid customerId, int page, int pageSize, CancellationToken ct)
+{
+    var spec  = new ActiveOrdersByCustomerSpec(customerId, pageSize, page);
+    var count = new ActiveOrderCountByCustomerSpec(customerId);
+
+    var orders = await _repository.ListAsync(spec, ct);
+    var total  = await _repository.CountAsync(count, ct);
+
+    return new PagedResult<OrderResponse>(
+        orders.Select(OrderResponse.From),
+        total,
+        page,
+        pageSize);
+}
+
+// Bad — EF Core / IQueryable leaks out of the data layer
+public async Task<List<Order>> GetCustomerOrdersAsync(Guid customerId)
+    => await _context.Orders
+        .Where(o => o.CustomerId == customerId)
+        .ToListAsync();
+```
+
+### Compose specifications for reuse
+
+```csharp
+public sealed class CompositeSpecification<T> : Specification<T>
+{
+    public CompositeSpecification(
+        Specification<T> left,
+        Specification<T> right,
+        CompositeMode mode = CompositeMode.And)
+    {
+        Criteria = mode == CompositeMode.And
+            ? left.Criteria!.And(right.Criteria!)
+            : left.Criteria!.Or(right.Criteria!);
+    }
+}
+
+// Reuse existing specs rather than duplicating criteria
+var spec = new CompositeSpecification<Order>(
+    new ActiveOrdersSpec(),
+    new HighValueOrdersSpec(minimumValue: 1000m));
+```
+
+### Consider Ardalis.Specification for production use
+
+Rather than implementing the pattern from scratch, prefer the
+[Ardalis.Specification](https://github.com/ardalis/Specification) NuGet package which
+provides a battle-tested base implementation with EF Core and Dapper evaluators.
+
+---
+
 ## Prefer `Results<T1, T2>` Problem Details over custom error shapes
 
 Use RFC 9457 Problem Details consistently for error responses. Aspire and Minimal APIs support

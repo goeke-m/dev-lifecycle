@@ -6,6 +6,42 @@ TypeScript projects.
 
 ---
 
+## Identify What Needs Protecting
+
+Before writing any code, identify and classify the assets at stake. Not everything needs
+the same level of protection — misclassifying leads to either under-protection of sensitive
+data or wasteful over-engineering of low-risk data.
+
+**Asset classification:**
+
+| Classification | Examples | Controls required |
+|---|---|---|
+| **Critical** | Credentials, private keys, payment data, PHI | Encryption at rest and in transit, strict access control, audit log |
+| **Sensitive** | PII, business logic, internal config | Access control, log redaction, masked in non-prod |
+| **Internal** | Application logs, metrics, non-personal config | Access restricted to operations team |
+| **Public** | Marketing content, public API responses | Integrity only |
+
+Document the classification for any new data type or storage system in an ADR.
+
+---
+
+## Identify Roles and Responsibilities
+
+Security ownership must be explicit. For every system or service, the following roles must
+be named — not left to assumption:
+
+| Role | Responsibility |
+|---|---|
+| **Data owner** | Decides classification, approves access changes, accountable for breaches |
+| **Service owner** | Ensures the service meets security standards, reviews security-touching PRs |
+| **Operations** | Manages secrets rotation, monitors alerts, responds to incidents |
+| **Developer** | Implements controls, follows these guidelines, flags risks in PRs |
+
+Document role assignments in the project README or a `SECURITY.md` file in the repository.
+When a role is vacant, escalate — do not leave it unowned.
+
+---
+
 ## Threat Assessment Before You Code
 
 Before implementing any feature that involves user input, authentication, authorisation,
@@ -127,7 +163,11 @@ element.innerHTML = DOMPurify.sanitize(userInput);
 
 ## Authentication and Authorisation
 
-### Never implement authentication yourself
+### Never implement your own security framework
+
+Do not write custom authentication, authorisation, cryptography, or token handling from
+scratch. These are well-understood, heavily audited problems with established solutions.
+Rolling your own introduces vulnerabilities that are difficult to detect and costly to fix.
 
 Use established identity providers and libraries:
 
@@ -209,6 +249,28 @@ Use:
 - **CI/CD**: GitHub Actions secrets / environment variables
 - **Production**: Azure Key Vault, AWS Secrets Manager, HashiCorp Vault
 
+### Rotate database passwords and credentials regularly
+
+Credentials that never change become a permanent liability if they are leaked. Rotate all
+database passwords, API keys, and service account credentials on a defined schedule:
+
+- **Database passwords**: rotate every 90 days minimum; immediately on suspected compromise
+- **API keys**: rotate every 180 days or on staff changes
+- **Service account credentials**: rotate on team membership changes
+
+Use your secrets provider's rotation features where available:
+
+```bash
+# Azure Key Vault — set an expiry and rotation policy
+az keyvault secret set-attributes \
+  --vault-name my-vault \
+  --name db-password \
+  --expires "$(date -u -d '+90 days' '+%Y-%m-%dT%H:%M:%SZ')"
+```
+
+Automate rotation where possible. Never require a deployment to rotate a credential —
+applications must read secrets at runtime, not bake them into build artefacts.
+
 ### Add a `.gitignore` entry and pre-commit check for common secret file patterns
 
 Ensure `.gitignore` excludes: `.env`, `*.pfx`, `*.p12`, `appsettings.*.json` (non-base),
@@ -257,6 +319,44 @@ Medium severity should be tracked and resolved within the current sprint.
 
 ---
 
+## Log and Monitoring Security
+
+Logs and monitoring tools are high-value targets — they often contain the information an
+attacker needs to escalate privileges or understand a system. Treat them with the same
+rigour as the database.
+
+### Secure access to logs as strictly as the database
+
+- Logs must not be publicly accessible or stored in unauthenticated storage buckets
+- Apply the same role-based access controls to log infrastructure as to production databases
+- Audit access to logs — who reads them and when should be recorded
+- Retain logs for the period required by compliance policy, then delete them — do not keep
+  logs indefinitely in unsecured cold storage
+
+### Monitoring tools must not expose sensitive information
+
+- Dashboards, alerting tools, and APM platforms (Grafana, Datadog, Azure Monitor, etc.)
+  must be access-controlled — do not share unauthenticated dashboard links
+- Ensure traces and spans do not capture request bodies that contain credentials or PII
+- Redact or mask sensitive fields before they reach the monitoring pipeline:
+
+```csharp
+// Configure OpenTelemetry to redact sensitive headers
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation(o =>
+        {
+            o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health");
+            o.EnrichWithHttpRequest = (activity, request) =>
+            {
+                // Do not record Authorization header values
+                activity.SetTag("http.request.header.authorization", "[redacted]");
+            };
+        }));
+```
+
+---
+
 ## Sensitive Data Handling
 
 ### Never log sensitive values
@@ -292,6 +392,41 @@ public sealed record UserRecord(
     [property: SensitiveData] string? PhoneNumber // custom attribute for log redaction
 );
 ```
+
+---
+
+## Test and Non-Production Environment Hygiene
+
+### Never restore production data to lower environments without scrubbing
+
+Production data contains real PII, credentials, and business-sensitive information.
+Restoring it to development, staging, or test environments — even temporarily — is a
+data breach risk and a compliance violation.
+
+Before any production data can be used in a lower environment:
+
+1. **Scrub PII** — replace names, emails, phone numbers, addresses with synthetic values
+2. **Nullify credentials** — clear password hashes, tokens, API keys; replace with known test values
+3. **Mask financial data** — truncate or randomise card numbers, account numbers, balances
+4. **Verify the scrub** — run a validation query to confirm no real values remain before import
+
+Use a dedicated data masking tool or script, and treat the scrubbing script as a production
+artefact — version-controlled, reviewed, and tested.
+
+```sql
+-- Example scrubbing script (PostgreSQL) — adapt per schema
+UPDATE customers SET
+  email      = 'user_' || id || '@example.com',
+  name       = 'Test User ' || row_number() OVER (),
+  phone      = NULL,
+  created_at = created_at; -- preserve structure, not identity
+
+UPDATE users SET
+  password_hash = '$2a$12$testhashtesthashhhhhhhhhhhhhhhhhhhhhhhhhhhhh', -- known bcrypt
+  refresh_token = NULL;
+```
+
+When possible, use generated synthetic data instead of scrubbed production data entirely.
 
 ---
 
@@ -334,12 +469,23 @@ Avoid `unsafe-inline` and `unsafe-eval` in CSP. Start restrictive and loosen onl
 Include the following in every PR that touches authentication, authorisation, data storage,
 external integrations, or file/network I/O:
 
+**Code**
 - [ ] All user-supplied input is validated at the boundary before use
 - [ ] No raw string concatenation into queries (SQL, LDAP, shell commands)
 - [ ] No secrets, credentials, or PII committed to source control
+- [ ] No custom authentication or cryptography — established libraries used throughout
 - [ ] Authentication and authorisation enforced — not bypassed for convenience
-- [ ] Sensitive values are not logged or included in error responses returned to clients
-- [ ] New dependencies have been checked for known CVEs (`dotnet list package --vulnerable` / `npm audit`)
-- [ ] Error responses do not leak internal stack traces or system details
 - [ ] New endpoints have explicit authorisation policies (no accidental public exposure)
 - [ ] HTTPS enforced; security headers present
+
+**Data and Logging**
+- [ ] Sensitive values are not logged or included in error responses returned to clients
+- [ ] Monitoring/tracing does not capture credentials, tokens, or PII in spans or metrics
+- [ ] Any test data derived from production has been fully scrubbed before use
+- [ ] New sensitive data types are classified and documented
+
+**Dependencies and Infrastructure**
+- [ ] New dependencies have been checked for known CVEs (`dotnet list package --vulnerable` / `npm audit`)
+- [ ] Error responses do not leak internal stack traces or system details
+- [ ] Log access controls reviewed if new log destinations or pipelines are introduced
+- [ ] Credential rotation policy confirmed for any new secrets introduced

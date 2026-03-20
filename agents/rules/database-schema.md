@@ -12,62 +12,56 @@ Schema documentation is not a wiki page or a shared drive document — it lives 
 repository so it is versioned, reviewed in PRs, and always reflects the current state of
 the codebase.
 
-Maintain two levels of documentation:
-
-| Level | What | Where |
-|---|---|---|
-| **DBML schema** | Machine- and human-readable table/column/relation definitions | `docs/schema/schema.dbml` |
-| **ERD** | Visual entity-relationship diagram generated from DBML | `docs/schema/erd.svg` (generated) |
+Maintain schema documentation in `docs/schema/README.md` using Mermaid ER diagrams.
+Mermaid renders natively in GitHub — no tooling, no CI generation step, visible inline
+in PRs and file views.
 
 ---
 
-## Use DBML for Schema Definitions
+## Use Mermaid for ER Diagrams
 
-[DBML (Database Markup Language)](https://dbml.org) is a concise, readable format for
-defining schema that tooling (dbdocs, dbdiagram.io) can render as an ERD. It is the
-source of truth for schema documentation — not the migration files.
+Place the diagram in `docs/schema/README.md` so it renders on GitHub without any tooling.
 
-```dbml
-// docs/schema/schema.dbml
+````markdown
+## Entity Relationships
 
-Project MyApp {
-  database_type: 'PostgreSQL'
-  Note: 'Core domain schema for MyApp'
-}
+```mermaid
+erDiagram
+    customers {
+        uuid        id          PK
+        varchar     email       "Verified, unique"
+        varchar     name
+        int         status      "1=Active 2=Suspended 3=Closed"
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-Table customers {
-  id          uuid        [pk, default: `gen_random_uuid()`]
-  email       varchar(256) [not null, unique, note: 'Verified email address']
-  name        varchar(256) [not null]
-  status      int          [not null, default: 1, note: 'SmartEnum value: 1=Active 2=Suspended 3=Closed']
-  created_at  timestamptz  [not null, default: `now()`]
-  updated_at  timestamptz  [not null, default: `now()`]
+    orders {
+        uuid        id          PK
+        uuid        customer_id FK
+        int         status      "1=Pending 2=Processing 3=Shipped 4=Delivered 5=Cancelled"
+        numeric     total
+        timestamptz placed_at
+        timestamptz shipped_at  "Null until shipped"
+    }
 
-  Note: 'Registered customers. Soft-delete is not used — closed accounts are status=Closed.'
-}
+    order_line_items {
+        uuid    id         PK
+        uuid    order_id   FK
+        uuid    product_id
+        int     quantity
+        numeric unit_price
+    }
 
-Table orders {
-  id          uuid        [pk, default: `gen_random_uuid()`]
-  customer_id uuid        [not null, ref: > customers.id]
-  status      int         [not null, note: 'SmartEnum value: 1=Pending 2=Processing 3=Shipped 4=Delivered 5=Cancelled']
-  total       numeric(18,2) [not null]
-  placed_at   timestamptz [not null, default: `now()`]
-  shipped_at  timestamptz [null]
-}
-
-Table order_line_items {
-  id          uuid          [pk, default: `gen_random_uuid()`]
-  order_id    uuid          [not null, ref: > orders.id]
-  product_id  uuid          [not null]
-  quantity    int           [not null]
-  unit_price  numeric(18,2) [not null]
-}
+    customers ||--o{ orders : "places"
+    orders    ||--|{ order_line_items : "contains"
 ```
+````
 
-### Update DBML in the same PR as the migration
+### Update the diagram in the same PR as the migration
 
-A migration that adds or removes tables/columns/indexes without a corresponding DBML update
-must not be merged. Treat them as a unit.
+A migration that adds or removes tables, columns, or relationships without a corresponding
+diagram update must not be merged. Treat them as a unit.
 
 ---
 
@@ -98,8 +92,7 @@ public sealed class Customer
 
 ### Use HasComment() in Fluent API for database-level column comments
 
-Column comments are stored in the database and surfaced by tools like pgAdmin, DBeaver,
-and database documentation generators.
+Column comments are stored in the database and surfaced by tools like pgAdmin and DBeaver.
 
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -142,7 +135,7 @@ dotnet ef migrations add Migration1
 /// <summary>
 /// Adds the ShippedAt column to the Orders table to record when an order
 /// left the warehouse. Nullable because historical orders predate this field.
-/// Paired with DBML update in docs/schema/schema.dbml.
+/// Paired with Mermaid diagram update in docs/schema/README.md.
 /// </summary>
 public partial class AddOrderShippedAtColumn : Migration
 {
@@ -169,23 +162,19 @@ the migration is written.
 
 ---
 
-## Keep an Inventory of Indexes
+## Keep an Index Inventory
 
-Document every non-primary-key index in DBML and explain why it exists:
+Document every non-primary-key index in `docs/schema/README.md` alongside the diagram,
+and explain why each exists:
 
-```dbml
-Table orders {
-  // ... columns ...
+```markdown
+## Indexes
 
-  indexes {
-    customer_id             [name: 'ix_orders_customer_id',
-                             note: 'Supports GetOrdersByCustomer queries — high frequency']
-    (customer_id, status)   [name: 'ix_orders_customer_id_status',
-                             note: 'Supports filtered order list by status per customer']
-    placed_at               [name: 'ix_orders_placed_at',
-                             note: 'Supports date-range reporting queries']
-  }
-}
+| Table | Index | Columns | Purpose |
+|---|---|---|---|
+| orders | ix_orders_customer_id | customer_id | GetOrdersByCustomer — high frequency |
+| orders | ix_orders_customer_status | customer_id, status | Filtered order list by status per customer |
+| orders | ix_orders_placed_at | placed_at | Date-range reporting queries |
 ```
 
 An index without a documented query it supports is a candidate for removal.
@@ -195,7 +184,7 @@ An index without a documented query it supports is a candidate for removal.
 ## Schema Drift Detection in CI
 
 Detect drift between the EF Core model and the database using a CI step that applies
-migrations to a clean database and compares the resulting schema to the expected state.
+migrations to a clean database and checks for any unapplied migrations.
 
 ```yaml
 # .github/workflows/schema-check.yml
@@ -247,11 +236,11 @@ jobs:
 
 ## Checklist for Schema-Changing PRs
 
-- [ ] DBML updated to reflect the schema change
+- [ ] Mermaid ER diagram updated in `docs/schema/README.md`
+- [ ] Index inventory updated if indexes were added or removed
 - [ ] Migration has a descriptive name and summary comment
 - [ ] `HasComment()` added to new tables and columns in Fluent API
 - [ ] XML doc comments added or updated on affected entity classes
-- [ ] New indexes are documented with the query they support
 - [ ] ADR written and merged (for breaking or structural changes)
 - [ ] `Down` migration is implemented and tested
 - [ ] CI schema drift check passes
